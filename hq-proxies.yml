@@ -1,10 +1,10 @@
 ---
 # 请填写redis配置
 # 请把这个配置文件放置到/etc/hq-proxies.yml
-REDIS_HOST: your_redis_host
+REDIS_HOST: localhost
 REDIS_PORT: 6379
-REDIS_PASSWORD: your_redis_password
-REDIS_DB: your_redis_db
+REDIS_PASSWORD:
+REDIS_DB: 
 
 # Redis key 
 PROXY_COUNT: hq-proxies:proxy_count
