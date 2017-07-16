@@ -26,6 +26,8 @@ PROTECT_SEC: 600
 # 强制刷新时间
 REFRESH_SEC: 86400
 
+FETCH_HTTPS_PROXY: true
+
 # 配置代理源和验证页
 PROXY_VENDORS: 
 - parser: parse_xici
@@ -36,8 +38,21 @@ PROXY_VENDORS:
   url: http://www.ip181.com/
 - parser: parse_66ip
   url: http://www.66ip.cn/nmtq.php?getnum=100&isp=0&anonymoustype=3&start=&ports=&export=&ipaddress=&area=1&proxytype=0&api=66ip
+
+HTTPS_PROXY_VENDORS:
+- parser: parse_xici_https
+  url: http://www.xicidaili.com/wn/
+- parser: parse_66ip
+  url: http://www.66ip.cn/nmtq.php?getnum=100&isp=0&anonymoustype=3&start=&ports=&export=&ipaddress=&area=1&proxytype=1&api=66ip
+- parser: parse_ip181
+  url: http://www.ip181.com/
   
 # 可以配置多个验证页，会随机抽取一个用于验证
 PROXY_VALIDATORS:
 - url: http://olbllni9a.bkt.clouddn.com/text/helloworld.txt
   startstring: hello world! :)
+
+HTTPS_PROXY_VALIDATORS:
+- url: https://olbllni9a.bkt.clouddn.com/text/helloworld.txt
+  startstring: hello world! :)
+

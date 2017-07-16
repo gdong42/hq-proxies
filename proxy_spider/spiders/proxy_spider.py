@@ -38,7 +38,11 @@ class ProxyCheckSpider(Spider):
         )
         
         self.validator_pool = set([])
-        for validator in LOCAL_CONFIG['PROXY_VALIDATORS']:
+        self.fetch_https = LOCAL_CONFIG['FETCH_HTTPS_PROXY']
+
+        self.validators = LOCAL_CONFIG['HTTPS_PROXY_VALIDATORS'] if self.fetch_https else LOCAL_CONFIG['HTTP_PROXY_VALIDATORS']
+
+        for validator in self.validators:
             self.validator_pool.add((validator['url'], validator['startstring']))
         self.PROXY_COUNT = LOCAL_CONFIG['PROXY_COUNT']
         self.PROXY_SET = LOCAL_CONFIG['PROXY_SET']
@@ -91,12 +95,14 @@ class ProxyFetchSpider(Spider):
         )
         self.PROXY_COUNT = LOCAL_CONFIG['PROXY_COUNT']
         self.PROXY_SET = LOCAL_CONFIG['PROXY_SET']
+        self.fetch_https = LOCAL_CONFIG['FETCH_HTTPS_PROXY']
+        self.validators = LOCAL_CONFIG['HTTPS_PROXY_VALIDATORS'] if self.fetch_https else LOCAL_CONFIG['HTTP_PROXY_VALIDATORS']
 
         self.validator_pool = set([])
-        for validator in LOCAL_CONFIG['PROXY_VALIDATORS']:
+        for validator in self.validators:
             self.validator_pool.add((validator['url'], validator['startstring']))
         
-        self.vendors = LOCAL_CONFIG['PROXY_VENDORS']
+        self.vendors = LOCAL_CONFIG['HTTPS_PROXY_VENDORS'] if self.fetch_https else LOCAL_CONFIG['PROXY_VENDORS']
     
     def start_requests(self):
         for vendor in self.vendors:
@@ -144,17 +150,47 @@ class ProxyFetchSpider(Spider):
                 yield Request(url=vaurl, meta={'proxy': proxy, 'startstring': vastart}, callback=self.checkin, dont_filter=True)
             else:
                 logger.info('该代理已收录..')
+
+    def parse_xici_https(self, response):
+        ''' 
+        @url http://www.xicidaili.com/wn/
+        '''
+        logger.info('解析 %s ' % response.url )
+        succ = 0
+        fail = 0
+        count = 0
+        for tr in response.css('#ip_list tr'):
+            td_list = tr.css('td::text')
+            if len(td_list) < 3:
+                continue
+            ipaddr = td_list[0].extract()
+            port = td_list[1].extract()
+            proto = td_list[5].extract()
+            latency = tr.css('div.bar::attr(title)').extract_first()
+            latency = re.match('(\d+\.\d+)秒', latency).group(1)
+            proxy = '%s://%s:%s' % (proto, ipaddr, port)
+            proxies = {proto: '%s:%s' % (ipaddr, port)}
+            if float(latency) > 3:
+                logger.info('丢弃慢速代理: %s 延迟%s秒' % (proxy, latency))
+                continue
+            logger.info('验证: %s' % proxy)
+            if not self.redis_db.sismember(self.PROXY_SET, proxy):
+                vaurl, vastart = random.choice(list(self.validator_pool))
+                yield Request(url=vaurl, meta={'proxy': proxy, 'startstring': vastart}, callback=self.checkin, dont_filter=True)
+            else:
+                logger.info('该代理已收录..')
     
     def parse_66ip(self, response):
         ''' 
         @url http://www.66ip.cn/nmtq.php?getnum=100&isp=0&anonymoustype=3&start=&ports=&export=&ipaddress=&area=1&proxytype=0&api=66ip
         '''
-        logger.info('开始爬取66ip')
+        logger.info('开始爬取66ip => %s' % response.url)
         if 'proxy' in response.meta:
             logger.info('=>使用代理%s' % response.meta['proxy'])
         res = response.body_as_unicode()
+        schema = 'https://' if self.fetch_https else 'http://'
         for addr in re.findall('\d+\.\d+\.\d+\.\d+\:\d+', res):
-            proxy = 'http://' + addr
+            proxy = schema + addr
             print(proxy)
             logger.info('验证: %s' % proxy)
             if not self.redis_db.sismember(self.PROXY_SET, proxy):
@@ -171,10 +207,15 @@ class ProxyFetchSpider(Spider):
         if 'proxy' in response.meta:
             logger.info('=>使用代理%s' % response.meta['proxy'])
         for tr in response.css('table tbody tr'):
-            ip = tr.css('td::text').extract()[0]
-            port = tr.css('td::text').extract()[1]
-            type = tr.css('td::text').extract()[2]
+            content_list = tr.css('td::text').extract()
+            ip = content_list[0]
+            port = content_list[1]
+            type = content_list[2]
+            schema = content_list[3]
             proxy = 'http://%s:%s' % (ip, port)
+            if self.fetch_https and "HTTPS" not in schema:
+                logger.info('丢弃非HTTPS代理: %s' % proxy)
+                continue
             if type != '高匿':
                 logger.info('丢弃非高匿代理：%s' % proxy)
                 continue
