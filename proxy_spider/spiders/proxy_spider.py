@@ -61,12 +61,12 @@ class ProxyCheckSpider(Spider):
         if 'startstring' in response.meta and res.startswith(response.meta['startstring']):
             proxy = response.meta['proxy']
             self.redis_db.sadd(self.PROXY_SET, proxy)
-            logger.info('可用代理+1  %s' % proxy)
+            # logger.info('可用代理+1  %s' % proxy)
             yield None
         else:
             proxy = response.url if 'proxy' not in response.meta else response.meta['proxy']
             self.redis_db.srem(self.PROXY_SET, proxy)
-            logger.info('无效代理  %s' % proxy)
+            logger.info('删除无效代理  %s' % proxy)
             yield None
     
     def closed(self, reason):
