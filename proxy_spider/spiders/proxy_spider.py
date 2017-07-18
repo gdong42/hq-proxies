@@ -136,7 +136,8 @@ class ProxyFetchSpider(Spider):
                 continue
             ipaddr = td_list[0].extract()
             port = td_list[1].extract()
-            proto = td_list[5].extract()
+            #proto = td_list[5].extract()
+            proto = 'http'
             latency = tr.css('div.bar::attr(title)').extract_first()
             latency = re.match('(\d+\.\d+)秒', latency).group(1)
             proxy = '%s://%s:%s' % (proto, ipaddr, port)
@@ -165,7 +166,8 @@ class ProxyFetchSpider(Spider):
                 continue
             ipaddr = td_list[0].extract()
             port = td_list[1].extract()
-            proto = td_list[5].extract()
+            #proto = td_list[5].extract()
+            proto = 'http'
             latency = tr.css('div.bar::attr(title)').extract_first()
             latency = re.match('(\d+\.\d+)秒', latency).group(1)
             proxy = '%s://%s:%s' % (proto, ipaddr, port)
@@ -188,7 +190,8 @@ class ProxyFetchSpider(Spider):
         if 'proxy' in response.meta:
             logger.info('=>使用代理%s' % response.meta['proxy'])
         res = response.body_as_unicode()
-        schema = 'https://' if self.fetch_https else 'http://'
+        #schema = 'https://' if self.fetch_https else 'http://'
+        schema = 'http://'
         for addr in re.findall('\d+\.\d+\.\d+\.\d+\:\d+', res):
             proxy = schema + addr
             print(proxy)
@@ -207,7 +210,8 @@ class ProxyFetchSpider(Spider):
         if 'proxy' in response.meta:
             logger.info('=>使用代理%s' % response.meta['proxy'])
         res = response.body_as_unicode()
-        schema = 'https://' if self.fetch_https else 'http://'
+        #schema = 'https://' if self.fetch_https else 'http://'
+        schema = 'http://'
         for addr in re.findall('\d+\.\d+\.\d+\.\d+\:\d+', res):
             proxy = schema + addr
             print(proxy)
