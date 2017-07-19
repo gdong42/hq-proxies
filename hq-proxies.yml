@@ -50,6 +50,8 @@ HTTPS_PROXY_VENDORS:
   url: http://www.ip181.com/
 - parser: parse_hutou
   url: http://<your order id>.standard.hutoudaili.com/?num=2000&area_type=1&scheme=1&anonymity=3&order=1
+- parser: parse_kuaidaili
+  url: http://dev.kuaidaili.com/api/getproxy/?orderid=<your order id>&num=300&b_pcchrome=1&b_pcie=1&b_pcff=1&protocol=2&method=1&an_ha=1&sp1=1&sp2=1&sp3=1&sep=1
   
 # 可以配置多个验证页，会随机抽取一个用于验证
 PROXY_VALIDATORS:

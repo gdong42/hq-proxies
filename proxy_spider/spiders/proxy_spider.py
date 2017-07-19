@@ -221,6 +221,26 @@ class ProxyFetchSpider(Spider):
                 yield Request(url=vaurl, meta={'proxy': proxy, 'title': vatitle}, callback=self.checkin, dont_filter=True)
             else:
                 logger.info('该代理已收录..')
+    
+    def parse_kuaidaili(self, response):
+        '''
+        @url http://dev.kuaidaili.com/api/getproxy/?orderid=<your order id>&num=300&b_pcchrome=1&b_pcie=1&b_pcff=1&protocol=2&method=1&an_ha=1&sp1=1&sp2=1&sp3=1&sep=1
+        '''
+        logger.info('开始爬取kuaidaili => %s' % response.url)
+        if 'proxy' in response.meta:
+            logger.info('=>使用代理%s' % response.meta['proxy'])
+        res = response.body_as_unicode()
+        #schema = 'https://' if self.fetch_https else 'http://'
+        schema = 'http://'
+        for addr in re.findall('\d+\.\d+\.\d+\.\d+\:\d+', res):
+            proxy = schema + addr
+            print(proxy)
+            logger.info('验证: %s' % proxy)
+            if not self.redis_db.sismember(self.PROXY_SET, proxy):
+                vaurl, vatitle = random.choice(list(self.validator_pool))
+                yield Request(url=vaurl, meta={'proxy': proxy, 'title': vatitle}, callback=self.checkin, dont_filter=True)
+            else:
+                logger.info('该代理已收录..')
         
     
     def parse_ip181(self, response):
