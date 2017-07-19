@@ -57,7 +57,7 @@ DOWNLOADER_MIDDLEWARES = {
    'scrapy.downloadermiddlewares.retry.RetryMiddleware': 351,
    'proxy_spider.middlewares.ProxyPoolUserAgentMiddleware': 543,
 }
-DOWNLOAD_TIMEOUT = 3
+DOWNLOAD_TIMEOUT = 10
 RETRY_ENABLED = False
 
 # DUPEFILTER_CLASS = 'proxy_spider.'
