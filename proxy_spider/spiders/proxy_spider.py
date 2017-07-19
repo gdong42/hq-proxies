@@ -43,7 +43,7 @@ class ProxyCheckSpider(Spider):
         self.validators = LOCAL_CONFIG['HTTPS_PROXY_VALIDATORS'] if self.fetch_https else LOCAL_CONFIG['HTTP_PROXY_VALIDATORS']
 
         for validator in self.validators:
-            self.validator_pool.add((validator['url'], validator['startstring']))
+            self.validator_pool.add((validator['url'], validator['title']))
         self.PROXY_COUNT = LOCAL_CONFIG['PROXY_COUNT']
         self.PROXY_SET = LOCAL_CONFIG['PROXY_SET']
         
@@ -53,12 +53,12 @@ class ProxyCheckSpider(Spider):
         self.redis_db.set(self.PROXY_COUNT, self.redis_db.scard(self.PROXY_SET))
         for proxy in self.redis_db.smembers(self.PROXY_SET):
             proxy = proxy.decode('utf-8')
-            vaurl, vastart = random.choice(list(self.validator_pool))
-            yield Request(url=vaurl, meta={'proxy': proxy, 'startstring': vastart}, callback=self.checkin, dont_filter=True)
+            vaurl, vatitle = random.choice(list(self.validator_pool))
+            yield Request(url=vaurl, meta={'proxy': proxy, 'title': vatitle}, callback=self.checkin, dont_filter=True)
     
     def checkin(self, response):
         res = response.body_as_unicode()
-        if 'startstring' in response.meta and res.startswith(response.meta['startstring']):
+        if 'title' in response.meta and response.xpath('//title/text()').extract_first() == response.meta['title']:
             proxy = response.meta['proxy']
             self.redis_db.sadd(self.PROXY_SET, proxy)
             # logger.info('可用代理+1  %s' % proxy)
@@ -100,7 +100,7 @@ class ProxyFetchSpider(Spider):
 
         self.validator_pool = set([])
         for validator in self.validators:
-            self.validator_pool.add((validator['url'], validator['startstring']))
+            self.validator_pool.add((validator['url'], validator['title']))
         
         self.vendors = LOCAL_CONFIG['HTTPS_PROXY_VENDORS'] if self.fetch_https else LOCAL_CONFIG['PROXY_VENDORS']
     
@@ -112,9 +112,7 @@ class ProxyFetchSpider(Spider):
     
     def checkin(self, response):
         res = response.body_as_unicode()
-        self.logger.debug(' res = %s', res)
-        self.logger.debug(' meta = %s', response.meta)
-        if 'startstring' in response.meta and res.startswith(response.meta['startstring']):
+        if 'title' in response.meta and response.xpath('//title/text()').extract_first() == response.meta['title']:
             proxy = response.meta['proxy']
             self.redis_db.sadd(self.PROXY_SET, proxy)
             logger.info('可用代理+1  %s' % proxy)
@@ -149,8 +147,8 @@ class ProxyFetchSpider(Spider):
                 continue
             logger.info('验证: %s' % proxy)
             if not self.redis_db.sismember(self.PROXY_SET, proxy):
-                vaurl, vastart = random.choice(list(self.validator_pool))
-                yield Request(url=vaurl, meta={'proxy': proxy, 'startstring': vastart}, callback=self.checkin, dont_filter=True)
+                vaurl, vatitle = random.choice(list(self.validator_pool))
+                yield Request(url=vaurl, meta={'proxy': proxy, 'title': vatitle}, callback=self.checkin, dont_filter=True)
             else:
                 logger.info('该代理已收录..')
 
@@ -179,8 +177,8 @@ class ProxyFetchSpider(Spider):
                 continue
             logger.info('验证: %s' % proxy)
             if not self.redis_db.sismember(self.PROXY_SET, proxy):
-                vaurl, vastart = random.choice(list(self.validator_pool))
-                yield Request(url=vaurl, meta={'proxy': proxy, 'startstring': vastart}, callback=self.checkin, dont_filter=True)
+                vaurl, vatitle = random.choice(list(self.validator_pool))
+                yield Request(url=vaurl, meta={'proxy': proxy, 'title': vatitle}, callback=self.checkin, dont_filter=True)
             else:
                 logger.info('该代理已收录..')
     
@@ -199,8 +197,8 @@ class ProxyFetchSpider(Spider):
             print(proxy)
             logger.info('验证: %s' % proxy)
             if not self.redis_db.sismember(self.PROXY_SET, proxy):
-                vaurl, vastart = random.choice(list(self.validator_pool))
-                yield Request(url=vaurl, meta={'proxy': proxy, 'startstring': vastart}, callback=self.checkin, dont_filter=True)
+                vaurl, vatitle = random.choice(list(self.validator_pool))
+                yield Request(url=vaurl, meta={'proxy': proxy, 'title': vatitle}, callback=self.checkin, dont_filter=True)
             else:
                 logger.info('该代理已收录..')
 
@@ -219,8 +217,8 @@ class ProxyFetchSpider(Spider):
             print(proxy)
             logger.info('验证: %s' % proxy)
             if not self.redis_db.sismember(self.PROXY_SET, proxy):
-                vaurl, vastart = random.choice(list(self.validator_pool))
-                yield Request(url=vaurl, meta={'proxy': proxy, 'startstring': vastart}, callback=self.checkin, dont_filter=True)
+                vaurl, vatitle = random.choice(list(self.validator_pool))
+                yield Request(url=vaurl, meta={'proxy': proxy, 'title': vatitle}, callback=self.checkin, dont_filter=True)
             else:
                 logger.info('该代理已收录..')
         
@@ -247,8 +245,8 @@ class ProxyFetchSpider(Spider):
                 continue
             logger.info('验证: %s' % proxy)
             if not self.redis_db.sismember(self.PROXY_SET, proxy):
-                vaurl, vastart = random.choice(list(self.validator_pool))
-                yield Request(url=vaurl, meta={'proxy': proxy, 'startstring': vastart}, callback=self.checkin, dont_filter=True)
+                vaurl, vatitle = random.choice(list(self.validator_pool))
+                yield Request(url=vaurl, meta={'proxy': proxy, 'title': vatitle}, callback=self.checkin, dont_filter=True)
             else:
                 logger.info('该代理已收录..')
     
@@ -272,8 +270,8 @@ class ProxyFetchSpider(Spider):
             proxy = 'http://%s:%s' % (ip, port)
             logger.info('验证: %s' % proxy)
             if not self.redis_db.sismember(self.PROXY_SET, proxy):
-                vaurl, vastart = random.choice(list(self.validator_pool))
-                yield Request(url=vaurl, meta={'proxy': proxy, 'startstring': vastart}, callback=self.checkin, dont_filter=True)
+                vaurl, vatitle = random.choice(list(self.validator_pool))
+                yield Request(url=vaurl, meta={'proxy': proxy, 'title': vatitle}, callback=self.checkin, dont_filter=True)
             else:
                 logger.info('该代理已收录..')
         if page < 3: # 爬取前3页

@@ -68,6 +68,6 @@ class ProxyPoolDownloaderMiddleware(DownloadTimeoutMiddleware):
     DONT_RETRY_ERRORS = (TimeoutError, ConnectionRefusedError, ResponseNeverReceived, ConnectError, ValueError, TypeError)
     
     def process_exception(self, request, exception, spider):
-        if isinstance(exception, self.DONT_RETRY_ERRORS):
+        if isinstance(exception, self.DONT_RETRY_ERRORS) and 'proxy' in request.meta:
             return TextResponse(url=request.meta['proxy'])
         

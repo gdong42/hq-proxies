@@ -13,9 +13,9 @@ PROXY_PROTECT: hq-proxies:proxy_protect
 PROXY_REFRESH: hq-proxies:proxy_refresh
 
 # 代理数量低于proxy_low时会刷新
-PROXY_LOW: 5 
+PROXY_LOW: 60
 # 代理数量低于proxy_exhaust时会强制刷新
-PROXY_EXHAUST: 2
+PROXY_EXHAUST: 50
 
 # 多久检查一次代理质量
 CHECK_INTERVAL: 10
@@ -53,10 +53,10 @@ HTTPS_PROXY_VENDORS:
   
 # 可以配置多个验证页，会随机抽取一个用于验证
 PROXY_VALIDATORS:
-- url: http://olbllni9a.bkt.clouddn.com/text/helloworld.txt
-  startstring: hello world! :)
+- url: http://www.baidu.com
+  title: 百度一下，你就知道
 
 HTTPS_PROXY_VALIDATORS:
-- url: https://olbllni9a.bkt.clouddn.com/text/helloworld.txt
-  startstring: hello world! :)
+- url: https://www.baidu.com
+  title: 百度一下，你就知道
 
